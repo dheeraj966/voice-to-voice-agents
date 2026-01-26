@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  # Local LiveKit Server
+  livekit:
+    image: livekit/livekit-server:latest
+    command: --dev --bind 0.0.0.0
+    ports:
+      - "7880:7880"   # HTTP API
+      - "7881:7881"   # RTC (WebRTC)
+      - "7882:7882"   # TURN/UDP
+    environment:
+      - LIVEKIT_KEYS=devkey:secret
+    networks:
+      - livekit-local
+
+networks:
+  livekit-local:
+    driver: bridge
