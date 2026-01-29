@@ -1,5 +1,35 @@
 # Voice AI - Frontend (Deploy to Netlify)
 
+## ⚡ QUICK START (Copy-Paste Commands)
+
+### Local Development
+```bash
+cd frontend
+npm install        # or: pnpm install
+npm run dev        # or: pnpm dev
+```
+**Local URL:** `http://localhost:3000`
+
+### Build for Production
+```bash
+cd frontend
+npm install && npm run build
+```
+
+### Deploy to Netlify (CLI)
+```bash
+npm install -g netlify-cli
+cd frontend
+netlify deploy --prod
+```
+
+### Deploy to Netlify (Manual)
+1. Go to https://app.netlify.com
+2. Drag & drop the `frontend` folder
+3. Done!
+
+---
+
 ## 📁 Location
 ```
 C:\Users\maxwe\ml project\fast_test_env\live_kit\DEPLOY\frontend

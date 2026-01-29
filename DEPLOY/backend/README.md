@@ -1,5 +1,46 @@
 # Voice AI - Backend Server
 
+## ⚡ QUICK START (Copy-Paste Commands)
+
+### Windows (One-liner)
+```cmd
+cd backend && pip install -r requirements.txt && ollama serve & timeout 5 && python src/web_agent.py
+```
+
+### Windows (Step by step)
+```cmd
+cd backend
+pip install -r requirements.txt
+start ollama serve
+python src/web_agent.py
+```
+
+### Mac/Linux (One-liner)
+```bash
+cd backend && pip install -r requirements.txt && ollama serve & sleep 5 && python src/web_agent.py
+```
+
+### Mac/Linux (Step by step)
+```bash
+cd backend
+pip install -r requirements.txt
+ollama serve &
+python src/web_agent.py
+```
+
+### Using Start Scripts
+```cmd
+# Windows
+START_SERVER.bat
+
+# Mac/Linux
+chmod +x START_SERVER.sh && ./START_SERVER.sh
+```
+
+**Server URL:** `http://0.0.0.0:5000` or `http://YOUR_IP:5000`
+
+---
+
 ## 📁 Location
 ```
 C:\Users\maxwe\ml project\fast_test_env\live_kit\DEPLOY\backend
