@@ -1,15 +1,23 @@
 @echo off
-title Voice AI
-echo.
-echo ==================================================
-echo    Voice AI - Starting...
-echo ==================================================
-echo.
+:: Voice AI Launcher - Minimizes terminal quickly
+:: For completely terminal-free experience, use VoiceAI.vbs instead
 
-:: Change to the app directory
+title Voice AI
 cd /d "%~dp0agent-starter-python"
 
-:: Run the desktop app (native window, not browser)
-python src/desktop_app.py
+:: Try pythonw first (no console window), fall back to pyw, then python
+where pythonw >nul 2>&1
+if %errorlevel%==0 (
+    start "" pythonw src\desktop_app.py
+    exit
+)
 
-pause
+where pyw >nul 2>&1
+if %errorlevel%==0 (
+    start "" pyw src\desktop_app.py
+    exit
+)
+
+:: Last resort - use python but start minimized
+start /min "" python src\desktop_app.py
+exit
