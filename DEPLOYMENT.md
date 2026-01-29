@@ -1,5 +1,39 @@
 # Voice AI - Deployment Guide
 
+## �️ Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        USERS                                     │
+│     (Mobile, Desktop, Mac, Linux - any browser)                 │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              NETLIFY (Frontend)                                  │
+│                                                                  │
+│   React/Next.js App                                             │
+│   - Serves the UI                                               │
+│   - Handles user interactions                                    │
+│   - Makes API calls to backend                                  │
+│                                                                  │
+│   URL: https://your-app.netlify.app                             │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │ API Requests (HTTP/WebSocket)
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              YOUR SERVER (Backend)                               │
+│                                                                  │
+│   Python Flask Server (web_agent.py)                            │
+│   - Ollama LLM for AI responses                                 │
+│   - Edge-TTS for voice synthesis                                │
+│   - Handles all AI processing (GPU intensive)                   │
+│                                                                  │
+│   URL: http://your-server-ip:5000                               │
+│   (Could be: your PC, Raspberry Pi, cloud server, etc.)         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ## 🌐 Multi-Device Support
 
 This project **already supports multi-device connectivity**:
@@ -9,134 +43,103 @@ This project **already supports multi-device connectivity**:
 - ✅ **Mac/Linux browsers**
 - ✅ **Tablets**
 
-The LiveKit WebRTC infrastructure handles all cross-platform audio/video streaming automatically.
-
 ---
 
-## 📦 Project Architecture
+## 🚀 Deployment Steps
 
-### Two Separate Systems:
+### Step 1: Deploy Frontend to Netlify
 
-1. **React Frontend** (`agent-starter-react/`)
-   - Next.js web application
-   - Uses LiveKit for real-time voice
-   - **Deployable to Netlify**
-
-2. **Python Backend** (`agent-starter-python/src/web_agent.py`)
-   - Flask web server with chat API
-   - Uses local Ollama for LLM
-   - **NOT deployable to Netlify** (requires server)
-
----
-
-## 🚀 Deployment Options
-
-### Option 1: Full Cloud Deployment (Recommended)
-
-#### Frontend → Netlify
-```bash
-cd agent-starter-react
-pnpm install
-netlify deploy --prod
-```
-
-**Required Environment Variables** (set in Netlify Dashboard):
-- `LIVEKIT_API_KEY` - From LiveKit Cloud
-- `LIVEKIT_API_SECRET` - From LiveKit Cloud  
-- `LIVEKIT_URL` - `wss://your-project.livekit.cloud`
-
-#### Backend → Railway/Render/Fly.io
-
-The Python backend cannot run on Netlify. Deploy to:
-
-| Platform | Best For | Cost |
-|----------|----------|------|
-| [Railway](https://railway.app) | Easy deployment | $5-20/mo |
-| [Render](https://render.com) | Free tier available | Free-$25/mo |
-| [Fly.io](https://fly.io) | Global edge | $5-20/mo |
-| [Heroku](https://heroku.com) | Simple setup | $7-25/mo |
-
-For the backend, you'll need to either:
-1. Run Ollama on your server (requires GPU)
-2. Replace Ollama with cloud LLM (OpenAI, Groq, Together.ai)
-
----
-
-### Option 2: Local Development + Cloud Frontend
-
-1. Run backend locally:
+1. **Push to GitHub** (if not already):
    ```bash
-   cd agent-starter-python
-   ollama serve &
-   python src/web_agent.py
+   cd agent-starter-react
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git remote add origin https://github.com/yourusername/voice-ai-frontend.git
+   git push -u origin main
    ```
 
-2. Deploy frontend to Netlify with your local IP in `.env.local`
+2. **Connect to Netlify**:
+   - Go to [Netlify](https://app.netlify.com)
+   - Click "Add new site" → "Import an existing project"
+   - Connect your GitHub repo
+   - Build settings are auto-detected from `netlify.toml`
 
----
+3. **Set Environment Variables** in Netlify Dashboard:
+   - `LIVEKIT_API_KEY` - From LiveKit Cloud
+   - `LIVEKIT_API_SECRET` - From LiveKit Cloud  
+   - `LIVEKIT_URL` - `wss://your-project.livekit.cloud`
+   - `NEXT_PUBLIC_BACKEND_URL` - Your backend server URL (optional, can set at runtime)
 
-### Option 3: Docker Compose (Self-hosted)
+### Step 2: Run Backend on Your Server
 
-For full self-hosting with Docker:
+The backend can run on **any device** that has:
+- Python 3.10+
+- Ollama installed
+- Network access
 
+**Option A: Your Local PC**
 ```bash
-docker-compose up -d
+cd agent-starter-python
+ollama serve &           # Start Ollama in background
+python src/web_agent.py  # Start the backend
 ```
 
-This runs:
-- LiveKit Server
-- Ollama LLM
-- Voice AI Backend
+**Option B: Cloud Server (Railway, Render, Fly.io)**
+- Deploy the `agent-starter-python` folder
+- Set environment variables for Ollama or use cloud LLM
+
+**Option C: Raspberry Pi / Home Server**
+- Same as Option A, just on your always-on device
+
+### Step 3: Connect Frontend to Backend
+
+1. Open your Netlify URL (e.g., https://your-app.netlify.app)
+2. Click "⚙️ Backend Setup" at the bottom
+3. Enter your backend server URL (e.g., http://192.168.1.100:5000)
+4. Click Save - the page will reload and connect
 
 ---
 
-## 🔧 Environment Setup
+## 🔧 Environment Files
 
 ### React Frontend (.env.local)
 ```env
 LIVEKIT_API_KEY=your_api_key
 LIVEKIT_API_SECRET=your_api_secret
 LIVEKIT_URL=wss://your-project.livekit.cloud
+NEXT_PUBLIC_BACKEND_URL=http://your-server-ip:5000
 ```
 
 ### Python Backend (.env.local)
 ```env
-FLASK_ENV=production
-OLLAMA_BASE_URL=http://localhost:11434/v1
-OLLAMA_MODEL=llama3.2
 HOST=0.0.0.0
 PORT=5000
-CORS_ORIGINS=https://your-netlify-site.netlify.app
+OLLAMA_BASE_URL=http://localhost:11434/v1
+OLLAMA_MODEL=llama3.2
+CORS_ORIGINS=*
 ```
 
 ---
 
-## 🎯 LiveKit Cloud Setup
+## 🔒 Security Notes
 
-1. Go to [LiveKit Cloud](https://cloud.livekit.io)
-2. Create a new project
-3. Get your API keys
-4. Deploy your Python agent to the cloud using LiveKit Agents CLI:
-   ```bash
-   lk app deploy
-   ```
+1. **HTTPS Required for Mobile**: Mobile browsers require HTTPS for microphone access. Netlify provides this automatically.
+
+2. **Backend CORS**: The backend has CORS enabled (`CORS_ORIGINS=*`). For production, restrict this to your Netlify domain.
+
+3. **Firewall**: If running backend at home, you may need to:
+   - Open port 5000 on your router
+   - Configure firewall to allow incoming connections
 
 ---
 
 ## 📱 Testing Multi-Device
 
-Once deployed:
+1. Deploy frontend to Netlify
+2. Run backend on your PC
+3. Open Netlify URL on your phone
+4. Configure backend URL in setup page
+5. Start chatting!
 
-1. Open your Netlify URL on desktop
-2. Scan QR code or share URL to mobile
-3. Both devices connect to same LiveKit room
-4. Voice streams between all connected devices
-
----
-
-## ⚠️ Important Notes
-
-- **Netlify limitations**: Cannot run persistent servers or local Ollama
-- **LiveKit Cloud**: Required for production multi-device voice
-- **Backend hosting**: Choose Railway/Render/Fly.io for Python backend
-- **Mobile browsers**: Require HTTPS for microphone access (Netlify provides this)
+Both your phone and PC connect to the same backend server.
