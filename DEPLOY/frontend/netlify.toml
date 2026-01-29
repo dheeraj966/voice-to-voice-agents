@@ -1,0 +1,63 @@
+# Netlify configuration for Voice AI React Frontend
+# Deploy command: netlify deploy --prod
+
+[build]
+  # Build command
+  command = "pnpm install && pnpm build"
+  # Output directory for Next.js
+  publish = ".next"
+
+[build.environment]
+  # Node version
+  NODE_VERSION = "20"
+
+# Environment variables to set in Netlify Dashboard:
+# ================================================
+# REQUIRED:
+#   LIVEKIT_API_KEY        - Your LiveKit Cloud API key
+#   LIVEKIT_API_SECRET     - Your LiveKit Cloud API secret  
+#   LIVEKIT_URL            - wss://your-project.livekit.cloud
+#
+# OPTIONAL (can also be set at runtime in browser):
+#   NEXT_PUBLIC_BACKEND_URL   - URL of your Python backend server
+#   NEXT_PUBLIC_LIVEKIT_URL   - LiveKit server URL for client
+
+# Next.js plugin for Netlify
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# CORS headers for API routes (needed for backend communication)
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, X-Requested-With"
+    Access-Control-Max-Age = "86400"
+
+# Cache static assets
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Handle Next.js routing
+[[redirects]]
+  from = "/_next/*"
+  to = "/_next/:splat"
+  status = 200
+
+# SPA fallback - let Next.js handle routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Role = ["admin"]}

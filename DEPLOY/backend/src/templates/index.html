@@ -1,0 +1,2036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice AI Assistant</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-tertiary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #2a2a2a;
+            --success: #22c55e;
+            --error: #ef4444;
+        }
+
+        .light-mode {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-tertiary: #e5e5e5;
+            --text-primary: #0a0a0a;
+            --text-secondary: #525252;
+            --text-muted: #a3a3a3;
+            --border: #e5e5e5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        /* Layout */
+        .app {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease, min-width 0.3s ease, margin-left 0.3s ease;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed {
+            width: 0;
+            min-width: 0;
+            border-right: none;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .setting-group {
+            margin-bottom: 24px;
+        }
+
+        .setting-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        /* Toggle Switch */
+        .toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle.active {
+            background: var(--accent);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .toggle.active::after {
+            transform: translateX(20px);
+        }
+
+        /* Select */
+        select {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slider-value {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            min-width: 40px;
+            text-align: right;
+        }
+
+        /* Model Parameters */
+        .param-row {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .param-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .param-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .param-name {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .param-value {
+            font-size: 0.8125rem;
+            font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+            color: var(--accent);
+            min-width: 45px;
+            text-align: right;
+        }
+
+        .param-hint {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .param-input {
+            width: 70px;
+            padding: 4px 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.8125rem;
+            font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+        }
+
+        .param-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .reset-params-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.875rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .reset-params-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent);
+        }
+
+        /* Collapsible Section */
+        .collapsible-group {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .collapsible-header {
+            cursor: pointer;
+            padding: 12px 14px;
+            background: var(--bg-tertiary);
+            margin-bottom: 0;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .collapsible-header:hover {
+            background: var(--border);
+        }
+
+        .collapsible-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .collapse-arrow {
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .collapse-arrow.open {
+            transform: rotate(90deg);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            padding: 0 14px;
+        }
+
+        .collapsible-content.open {
+            max-height: 1000px;
+            padding: 14px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* History */
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: var(--bg-tertiary);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .history-item:hover {
+            background: var(--border);
+        }
+
+        .history-item-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .message {
+            max-width: 720px;
+            margin: 0 auto 24px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-user {
+            text-align: right;
+        }
+
+        .message-content {
+            display: inline-block;
+            padding: 14px 18px;
+            border-radius: 16px;
+            max-width: 80%;
+        }
+
+        .message-user .message-content {
+            background: var(--accent);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-assistant .message-content {
+            background: var(--bg-secondary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-text {
+            line-height: 1.5;
+        }
+
+        /* Audio Player */
+        .audio-player {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .play-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .audio-progress {
+            flex: 1;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .audio-progress-bar {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .audio-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            min-width: 40px;
+        }
+
+        /* Caption */
+        .caption {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        .caption.visible {
+            display: block;
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-secondary);
+        }
+
+        .input-container {
+            max-width: 720px;
+            margin: 0 auto;
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            resize: none;
+            min-height: 52px;
+            max-height: 200px;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .send-btn {
+            width: 52px;
+            height: 52px;
+            background: var(--accent);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .send-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            gap: 4px;
+            padding: 14px 18px;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Status Bar */
+        .status-bar {
+            padding: 8px 24px;
+            background: var(--bg-tertiary);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .status-dot.error {
+            background: var(--error);
+        }
+
+        /* Empty State */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            padding: 40px;
+        }
+
+        .empty-state-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-title {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        /* Keyboard Shortcuts */
+        .shortcuts-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+        }
+
+        .shortcuts-modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .shortcuts-content {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .shortcuts-title {
+            font-size: 1.125rem;
+            margin-bottom: 16px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .shortcut-key {
+            background: var(--bg-tertiary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                z-index: 100;
+                height: 100%;
+                width: 280px;
+                min-width: 280px;
+            }
+            
+            .sidebar.collapsed {
+                width: 0;
+                min-width: 0;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Slide Panel (System Instructions) */
+        .slide-panel-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .slide-panel-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .slide-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 480px;
+            max-width: 100%;
+            height: 100%;
+            background: var(--bg-secondary);
+            z-index: 999;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .slide-panel.open {
+            transform: translateX(0);
+        }
+
+        .slide-panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slide-panel-header h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .slide-panel-body {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .slide-panel-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .panel-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .panel-label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            margin-top: 20px;
+        }
+
+        .panel-label:first-of-type {
+            margin-top: 0;
+        }
+
+        .system-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 14px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-family: inherit;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .system-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .char-count {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: 8px;
+        }
+
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .preset-btn {
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        .preset-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .panel-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .quick-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+        }
+
+        .quick-option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .quick-option label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            padding: 10px 20px;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            z-index: 1001;
+            opacity: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.visible {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-color: var(--success);
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" y1="19" x2="12" y2="22"/>
+                        </svg>
+                    </div>
+                    Voice AI
+                </div>
+            </div>
+
+            <div class="settings-panel">
+                <!-- Voice Selection -->
+                <div class="setting-group">
+                    <div class="setting-label">Voice</div>
+                    <select id="voiceSelect">
+                        <option value="aria">Aria (Female, US)</option>
+                        <option value="guy">Guy (Male, US)</option>
+                        <option value="jenny">Jenny (Female, US)</option>
+                        <option value="eric">Eric (Male, US)</option>
+                        <option value="emma">Sonia (Female, UK)</option>
+                        <option value="ryan">Ryan (Male, UK)</option>
+                        <option value="natasha">Natasha (Female, AU)</option>
+                    </select>
+                </div>
+
+                <!-- Speed -->
+                <div class="setting-group">
+                    <div class="setting-label">Speech Speed</div>
+                    <div class="slider-container">
+                        <input type="range" id="speedSlider" min="-50" max="50" value="0">
+                        <span class="slider-value" id="speedValue">1.0x</span>
+                    </div>
+                </div>
+
+                <!-- Model Parameters (Comprehensive Controls) -->
+                <div class="setting-group collapsible-group">
+                    <div class="setting-label collapsible-header" onclick="toggleModelParams()">
+                        <div class="collapsible-title">
+                            <svg class="collapse-arrow" id="modelParamsArrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"/>
+                            </svg>
+                            Model Parameters
+                        </div>
+                        <button class="reset-params-btn" onclick="event.stopPropagation(); resetModelParams()" title="Reset to defaults">↻</button>
+                    </div>
+                    
+                    <div class="collapsible-content" id="modelParamsContent">
+                        <!-- Temperature -->
+                        <div class="param-row">
+                            <div class="param-header">
+                                <span class="param-name">Temperature</span>
+                                <span class="param-value" id="temperatureValue">0.7</span>
+                            </div>
+                            <input type="range" id="temperatureSlider" min="0" max="200" value="70" step="1">
+                            <div class="param-hint">Lower = focused, Higher = creative</div>
+                        </div>
+
+                        <!-- Top P (Nucleus Sampling) -->
+                        <div class="param-row">
+                            <div class="param-header">
+                                <span class="param-name">Top P</span>
+                                <span class="param-value" id="topPValue">0.9</span>
+                            </div>
+                            <input type="range" id="topPSlider" min="0" max="100" value="90" step="1">
+                            <div class="param-hint">Nucleus sampling threshold</div>
+                        </div>
+
+                        <!-- Top K -->
+                        <div class="param-row">
+                            <div class="param-header">
+                                <span class="param-name">Top K</span>
+                                <span class="param-value" id="topKValue">40</span>
+                            </div>
+                            <input type="range" id="topKSlider" min="1" max="100" value="40" step="1">
+                            <div class="param-hint">Limit token pool size</div>
+                        </div>
+
+                        <!-- Max Tokens -->
+                        <div class="param-row">
+                            <div class="param-header">
+                                <span class="param-name">Max Tokens</span>
+                                <span class="param-value" id="maxTokensValue">512</span>
+                            </div>
+                            <input type="range" id="maxTokensSlider" min="64" max="4096" value="512" step="64">
+                            <div class="param-hint">Maximum response length</div>
+                        </div>
+
+                        <!-- Frequency Penalty -->
+                        <div class="param-row">
+                            <div class="param-header">
+                                <span class="param-name">Frequency Penalty</span>
+                                <span class="param-value" id="frequencyPenaltyValue">0.0</span>
+                            </div>
+                            <input type="range" id="frequencyPenaltySlider" min="-200" max="200" value="0" step="10">
+                            <div class="param-hint">Reduce repetition of tokens</div>
+                        </div>
+
+                        <!-- Presence Penalty -->
+                        <div class="param-row">
+                            <div class="param-header">
+                                <span class="param-name">Presence Penalty</span>
+                                <span class="param-value" id="presencePenaltyValue">0.0</span>
+                            </div>
+                            <input type="range" id="presencePenaltySlider" min="-200" max="200" value="0" step="10">
+                            <div class="param-hint">Encourage new topics</div>
+                        </div>
+
+                        <!-- Repeat Penalty (Ollama specific) -->
+                        <div class="param-row">
+                            <div class="param-header">
+                                <span class="param-name">Repeat Penalty</span>
+                                <span class="param-value" id="repeatPenaltyValue">1.1</span>
+                            </div>
+                            <input type="range" id="repeatPenaltySlider" min="100" max="200" value="110" step="1">
+                            <div class="param-hint">Penalize repeated sequences</div>
+                        </div>
+
+                        <!-- Seed -->
+                        <div class="param-row">
+                            <div class="param-header">
+                                <span class="param-name">Seed</span>
+                                <input type="number" id="seedInput" value="-1" min="-1" class="param-input">
+                            </div>
+                            <div class="param-hint">-1 = random, or set for reproducibility</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toggles -->
+                <div class="setting-group">
+                    <div class="setting-label">Features</div>
+                    <div class="setting-row">
+                        <span>Captions</span>
+                        <div class="toggle active" id="captionToggle"></div>
+                    </div>
+                    <div class="setting-row">
+                        <span>Auto-play Audio</span>
+                        <div class="toggle active" id="autoplayToggle"></div>
+                    </div>
+                    <div class="setting-row">
+                        <span>Sound Effects</span>
+                        <div class="toggle" id="sfxToggle"></div>
+                    </div>
+                    <div class="setting-row">
+                        <span>Dark Mode</span>
+                        <div class="toggle active" id="darkModeToggle"></div>
+                    </div>
+                </div>
+
+                <!-- History -->
+                <div class="setting-group">
+                    <div class="setting-label">Recent Conversations</div>
+                    <div class="history-list" id="historyList">
+                        <!-- History items will be added here -->
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="setting-group">
+                    <button class="icon-btn" style="width: 100%; justify-content: center; gap: 8px;" onclick="clearChat()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                        Clear Conversation
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Header -->
+            <header class="header">
+                <button class="icon-btn" onclick="toggleSidebar()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+                <span class="header-title" id="modelName">llama3.2 • Local</span>
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="openSystemInstructions()" title="System Instructions">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"/>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" onclick="exportChat()" title="Export">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" onclick="showShortcuts()" title="Keyboard Shortcuts">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="4" width="20" height="16" rx="2"/>
+                            <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Area -->
+            <div class="chat-area" id="chatArea">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-state-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" y1="19" x2="12" y2="22"/>
+                        </svg>
+                    </div>
+                    <div class="empty-state-title">Start a conversation</div>
+                    <p>Type a message and the AI will respond with voice.</p>
+                </div>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-indicator">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Connected to Ollama</span>
+                </div>
+                <span>Press Ctrl+/ for shortcuts</span>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-container">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Type your message..." 
+                            rows="1"
+                            autofocus
+                        ></textarea>
+                    </div>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Shortcuts Modal -->
+    <div class="shortcuts-modal" id="shortcutsModal" onclick="hideShortcuts()">
+        <div class="shortcuts-content" onclick="event.stopPropagation()">
+            <h3 class="shortcuts-title">Keyboard Shortcuts</h3>
+            <div class="shortcut-item">
+                <span>Send message</span>
+                <span class="shortcut-key">Enter</span>
+            </div>
+            <div class="shortcut-item">
+                <span>New line</span>
+                <span class="shortcut-key">Shift + Enter</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Toggle sidebar</span>
+                <span class="shortcut-key">Ctrl + B</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Clear chat</span>
+                <span class="shortcut-key">Ctrl + Shift + C</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Toggle captions</span>
+                <span class="shortcut-key">Ctrl + K</span>
+            </div>
+            <div class="shortcut-item">
+                <span>System instructions</span>
+                <span class="shortcut-key">Ctrl + I</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Show shortcuts</span>
+                <span class="shortcut-key">Ctrl + /</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Instructions Panel (Slide-over from right) -->
+    <div class="slide-panel-overlay" id="systemPanelOverlay" onclick="closeSystemInstructions()"></div>
+    <div class="slide-panel" id="systemInstructionsPanel">
+        <div class="slide-panel-header">
+            <h3>System Instructions</h3>
+            <button class="icon-btn" onclick="closeSystemInstructions()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <div class="slide-panel-body">
+            <p class="panel-description">
+                Define how the AI assistant should behave. These instructions are sent with every message.
+            </p>
+            
+            <div class="preset-buttons">
+                <button class="preset-btn" onclick="loadPreset('default')">Default</button>
+                <button class="preset-btn" onclick="loadPreset('concise')">Concise</button>
+                <button class="preset-btn" onclick="loadPreset('detailed')">Detailed</button>
+                <button class="preset-btn" onclick="loadPreset('creative')">Creative</button>
+                <button class="preset-btn" onclick="loadPreset('professional')">Professional</button>
+            </div>
+
+            <label class="panel-label">Instructions</label>
+            <textarea id="systemInstructions" class="system-textarea" placeholder="Enter system instructions..."></textarea>
+            
+            <div class="char-count">
+                <span id="charCount">0</span> / 2000 characters
+            </div>
+
+            <div class="panel-section">
+                <label class="panel-label">Quick Options</label>
+                <div class="quick-option">
+                    <input type="checkbox" id="optConcise" checked>
+                    <label for="optConcise">Keep responses concise</label>
+                </div>
+                <div class="quick-option">
+                    <input type="checkbox" id="optNoEmoji" checked>
+                    <label for="optNoEmoji">No emojis or special formatting</label>
+                </div>
+                <div class="quick-option">
+                    <input type="checkbox" id="optFriendly">
+                    <label for="optFriendly">Friendly and casual tone</label>
+                </div>
+                <div class="quick-option">
+                    <input type="checkbox" id="optExpert">
+                    <label for="optExpert">Expert-level responses</label>
+                </div>
+            </div>
+        </div>
+        <div class="slide-panel-footer">
+            <button class="btn-secondary" onclick="resetInstructions()">Reset to Default</button>
+            <button class="btn-primary" onclick="saveSystemInstructions()">Save & Apply</button>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let sessionId = localStorage.getItem('sessionId') || generateId();
+        let settings = JSON.parse(localStorage.getItem('settings') || '{}');
+        let modelParams = JSON.parse(localStorage.getItem('modelParams') || '{}');
+        let messages = [];
+        let currentAudio = null;
+        let ollamaConnected = false;  // Track connection status
+
+        // Default model parameters
+        const defaultModelParams = {
+            temperature: 0.7,
+            top_p: 0.9,
+            top_k: 40,
+            max_tokens: 512,
+            frequency_penalty: 0.0,
+            presence_penalty: 0.0,
+            repeat_penalty: 1.1,
+            seed: -1
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            localStorage.setItem('sessionId', sessionId);
+            loadSettings();
+            loadModelParams();
+            loadModelParamsState();
+            loadHistory();
+            setupEventListeners();
+            checkConnection();  // Check connection on load
+            setInterval(checkConnection, 10000);  // Check every 10 seconds
+        });
+
+        // Connection status functions
+        async function checkConnection() {
+            try {
+                const response = await fetch('/health', { timeout: 5000 });
+                const data = await response.json();
+                updateConnectionStatus(data.ollama_available === true);
+            } catch (error) {
+                updateConnectionStatus(false);
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            ollamaConnected = connected;
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            
+            if (connected) {
+                dot.classList.remove('error');
+                text.textContent = 'Connected to Ollama';
+            } else {
+                dot.classList.add('error');
+                text.textContent = 'Ollama not running - start with "ollama serve"';
+            }
+        }
+
+        function generateId() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0;
+                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            });
+        }
+
+        function loadSettings() {
+            const defaults = {
+                voice: 'aria',
+                speed: 0,
+                captions: true,
+                autoplay: true,
+                sfx: false,
+                darkMode: true
+            };
+            settings = { ...defaults, ...settings };
+            
+            document.getElementById('voiceSelect').value = settings.voice;
+            document.getElementById('speedSlider').value = settings.speed;
+            updateSpeedValue();
+            
+            updateToggle('captionToggle', settings.captions);
+            updateToggle('autoplayToggle', settings.autoplay);
+            updateToggle('sfxToggle', settings.sfx);
+            updateToggle('darkModeToggle', settings.darkMode);
+            
+            if (!settings.darkMode) document.body.classList.add('light-mode');
+        }
+
+        function loadModelParams() {
+            modelParams = { ...defaultModelParams, ...modelParams };
+            
+            // Temperature (slider: 0-200, value: 0-2.0)
+            document.getElementById('temperatureSlider').value = modelParams.temperature * 100;
+            document.getElementById('temperatureValue').textContent = modelParams.temperature.toFixed(2);
+            
+            // Top P (slider: 0-100, value: 0-1.0)
+            document.getElementById('topPSlider').value = modelParams.top_p * 100;
+            document.getElementById('topPValue').textContent = modelParams.top_p.toFixed(2);
+            
+            // Top K (direct)
+            document.getElementById('topKSlider').value = modelParams.top_k;
+            document.getElementById('topKValue').textContent = modelParams.top_k;
+            
+            // Max Tokens (direct)
+            document.getElementById('maxTokensSlider').value = modelParams.max_tokens;
+            document.getElementById('maxTokensValue').textContent = modelParams.max_tokens;
+            
+            // Frequency Penalty (slider: -200 to 200, value: -2.0 to 2.0)
+            document.getElementById('frequencyPenaltySlider').value = modelParams.frequency_penalty * 100;
+            document.getElementById('frequencyPenaltyValue').textContent = modelParams.frequency_penalty.toFixed(1);
+            
+            // Presence Penalty (slider: -200 to 200, value: -2.0 to 2.0)
+            document.getElementById('presencePenaltySlider').value = modelParams.presence_penalty * 100;
+            document.getElementById('presencePenaltyValue').textContent = modelParams.presence_penalty.toFixed(1);
+            
+            // Repeat Penalty (slider: 100-200, value: 1.0-2.0)
+            document.getElementById('repeatPenaltySlider').value = modelParams.repeat_penalty * 100;
+            document.getElementById('repeatPenaltyValue').textContent = modelParams.repeat_penalty.toFixed(2);
+            
+            // Seed
+            document.getElementById('seedInput').value = modelParams.seed;
+        }
+
+        function saveModelParams() {
+            localStorage.setItem('modelParams', JSON.stringify(modelParams));
+        }
+
+        function resetModelParams() {
+            modelParams = { ...defaultModelParams };
+            saveModelParams();
+            loadModelParams();
+            showToast('Model parameters reset to defaults', 'success');
+        }
+
+        function toggleModelParams() {
+            const content = document.getElementById('modelParamsContent');
+            const arrow = document.getElementById('modelParamsArrow');
+            const isOpen = content.classList.toggle('open');
+            arrow.classList.toggle('open', isOpen);
+            
+            // Save state to localStorage
+            localStorage.setItem('modelParamsOpen', isOpen);
+        }
+
+        function loadModelParamsState() {
+            const isOpen = localStorage.getItem('modelParamsOpen') === 'true';
+            if (isOpen) {
+                document.getElementById('modelParamsContent').classList.add('open');
+                document.getElementById('modelParamsArrow').classList.add('open');
+            }
+        }
+
+        function saveSettings() {
+            localStorage.setItem('settings', JSON.stringify(settings));
+        }
+
+        function updateToggle(id, value) {
+            const toggle = document.getElementById(id);
+            toggle.classList.toggle('active', value);
+        }
+
+        function setupEventListeners() {
+            // Textarea auto-resize
+            const input = document.getElementById('messageInput');
+            input.addEventListener('input', () => {
+                input.style.height = 'auto';
+                input.style.height = Math.min(input.scrollHeight, 200) + 'px';
+            });
+
+            // Enter to send
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Voice select
+            document.getElementById('voiceSelect').addEventListener('change', (e) => {
+                settings.voice = e.target.value;
+                saveSettings();
+            });
+
+            // Speed slider
+            document.getElementById('speedSlider').addEventListener('input', (e) => {
+                settings.speed = parseInt(e.target.value);
+                updateSpeedValue();
+                saveSettings();
+            });
+
+            // Toggles
+            document.getElementById('captionToggle').addEventListener('click', () => {
+                settings.captions = !settings.captions;
+                updateToggle('captionToggle', settings.captions);
+                document.querySelectorAll('.caption').forEach(el => {
+                    el.classList.toggle('visible', settings.captions);
+                });
+                saveSettings();
+            });
+
+            document.getElementById('autoplayToggle').addEventListener('click', () => {
+                settings.autoplay = !settings.autoplay;
+                updateToggle('autoplayToggle', settings.autoplay);
+                saveSettings();
+            });
+
+            document.getElementById('sfxToggle').addEventListener('click', () => {
+                settings.sfx = !settings.sfx;
+                updateToggle('sfxToggle', settings.sfx);
+                saveSettings();
+            });
+
+            document.getElementById('darkModeToggle').addEventListener('click', () => {
+                settings.darkMode = !settings.darkMode;
+                updateToggle('darkModeToggle', settings.darkMode);
+                document.body.classList.toggle('light-mode', !settings.darkMode);
+                saveSettings();
+            });
+
+            // Model Parameter Sliders
+            document.getElementById('temperatureSlider').addEventListener('input', (e) => {
+                modelParams.temperature = parseInt(e.target.value) / 100;
+                document.getElementById('temperatureValue').textContent = modelParams.temperature.toFixed(2);
+                saveModelParams();
+            });
+
+            document.getElementById('topPSlider').addEventListener('input', (e) => {
+                modelParams.top_p = parseInt(e.target.value) / 100;
+                document.getElementById('topPValue').textContent = modelParams.top_p.toFixed(2);
+                saveModelParams();
+            });
+
+            document.getElementById('topKSlider').addEventListener('input', (e) => {
+                modelParams.top_k = parseInt(e.target.value);
+                document.getElementById('topKValue').textContent = modelParams.top_k;
+                saveModelParams();
+            });
+
+            document.getElementById('maxTokensSlider').addEventListener('input', (e) => {
+                modelParams.max_tokens = parseInt(e.target.value);
+                document.getElementById('maxTokensValue').textContent = modelParams.max_tokens;
+                saveModelParams();
+            });
+
+            document.getElementById('frequencyPenaltySlider').addEventListener('input', (e) => {
+                modelParams.frequency_penalty = parseInt(e.target.value) / 100;
+                document.getElementById('frequencyPenaltyValue').textContent = modelParams.frequency_penalty.toFixed(1);
+                saveModelParams();
+            });
+
+            document.getElementById('presencePenaltySlider').addEventListener('input', (e) => {
+                modelParams.presence_penalty = parseInt(e.target.value) / 100;
+                document.getElementById('presencePenaltyValue').textContent = modelParams.presence_penalty.toFixed(1);
+                saveModelParams();
+            });
+
+            document.getElementById('repeatPenaltySlider').addEventListener('input', (e) => {
+                modelParams.repeat_penalty = parseInt(e.target.value) / 100;
+                document.getElementById('repeatPenaltyValue').textContent = modelParams.repeat_penalty.toFixed(2);
+                saveModelParams();
+            });
+
+            document.getElementById('seedInput').addEventListener('change', (e) => {
+                modelParams.seed = parseInt(e.target.value) || -1;
+                saveModelParams();
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === '/') {
+                    e.preventDefault();
+                    showShortcuts();
+                }
+                if (e.ctrlKey && e.key === 'b') {
+                    e.preventDefault();
+                    toggleSidebar();
+                }
+                if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                    e.preventDefault();
+                    clearChat();
+                }
+                if (e.ctrlKey && e.key === 'k') {
+                    e.preventDefault();
+                    document.getElementById('captionToggle').click();
+                }
+                if (e.key === 'Escape') {
+                    hideShortcuts();
+                }
+            });
+        }
+
+        function updateSpeedValue() {
+            const speed = parseInt(document.getElementById('speedSlider').value);
+            const multiplier = 1 + speed / 100;
+            document.getElementById('speedValue').textContent = multiplier.toFixed(1) + 'x';
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+
+        function showShortcuts() {
+            document.getElementById('shortcutsModal').classList.add('visible');
+        }
+
+        function hideShortcuts() {
+            document.getElementById('shortcutsModal').classList.remove('visible');
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Clear input
+            input.value = '';
+            input.style.height = 'auto';
+
+            // Hide empty state
+            document.getElementById('emptyState').style.display = 'none';
+
+            // Add user message
+            addMessage('user', message);
+
+            // Show loading
+            const loadingId = addLoading();
+
+            // Disable send button
+            document.getElementById('sendBtn').disabled = true;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message,
+                        session_id: sessionId,
+                        voice: settings.voice,
+                        speed: settings.speed,
+                        generate_audio: true,
+                        system_instructions: getSystemInstructions(),
+                        model_params: modelParams
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Remove loading
+                removeLoading(loadingId);
+
+                if (data.error) {
+                    // Check if it's a connection error
+                    if (data.error_type === 'connection_error' || data.error.includes('connection') || data.error.includes('Ollama')) {
+                        updateConnectionStatus(false);
+                        addMessage('assistant', '⚠️ ' + data.error + (data.suggestion ? '\n\n💡 ' + data.suggestion : ''));
+                    } else {
+                        addMessage('assistant', 'Error: ' + data.error);
+                    }
+                } else {
+                    updateConnectionStatus(true);  // Successful response means connected
+                    addMessage('assistant', data.text, data.audio_url);
+                }
+
+            } catch (error) {
+                removeLoading(loadingId);
+                updateConnectionStatus(false);  // Network error means not connected
+                addMessage('assistant', '⚠️ Could not connect to server. Please make sure the server is running.');
+            }
+
+            // Re-enable send button
+            document.getElementById('sendBtn').disabled = false;
+            input.focus();
+        }
+
+        function addMessage(role, text, audioUrl = null) {
+            const chatArea = document.getElementById('chatArea');
+            const messageEl = document.createElement('div');
+            messageEl.className = `message message-${role}`;
+            
+            let html = `
+                <div class="message-content">
+                    <div class="message-text">${escapeHtml(text)}</div>
+            `;
+
+            if (audioUrl && role === 'assistant') {
+                html += `
+                    <div class="audio-player">
+                        <button class="play-btn" onclick="playAudio(this, '${audioUrl}')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                        </button>
+                        <div class="audio-progress">
+                            <div class="audio-progress-bar"></div>
+                        </div>
+                        <span class="audio-time">0:00</span>
+                    </div>
+                    <div class="caption ${settings.captions ? 'visible' : ''}">${escapeHtml(text)}</div>
+                `;
+            }
+
+            html += '</div>';
+            messageEl.innerHTML = html;
+            chatArea.appendChild(messageEl);
+            chatArea.scrollTop = chatArea.scrollHeight;
+
+            // Auto-play if enabled
+            if (audioUrl && settings.autoplay) {
+                setTimeout(() => {
+                    const playBtn = messageEl.querySelector('.play-btn');
+                    if (playBtn) playAudio(playBtn, audioUrl);
+                }, 100);
+            }
+
+            messages.push({ role, text, audioUrl });
+        }
+
+        function addLoading() {
+            const chatArea = document.getElementById('chatArea');
+            const id = 'loading-' + Date.now();
+            const loadingEl = document.createElement('div');
+            loadingEl.className = 'message message-assistant';
+            loadingEl.id = id;
+            loadingEl.innerHTML = `
+                <div class="loading">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
+            `;
+            chatArea.appendChild(loadingEl);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            return id;
+        }
+
+        function removeLoading(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function playAudio(btn, url) {
+            // Stop current audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+
+            const player = btn.closest('.audio-player');
+            const progressBar = player.querySelector('.audio-progress-bar');
+            const timeEl = player.querySelector('.audio-time');
+
+            const audio = new Audio(url);
+            currentAudio = audio;
+
+            // Update play button to pause
+            btn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16"/>
+                    <rect x="14" y="4" width="4" height="16"/>
+                </svg>
+            `;
+
+            audio.addEventListener('timeupdate', () => {
+                const progress = (audio.currentTime / audio.duration) * 100;
+                progressBar.style.width = progress + '%';
+                timeEl.textContent = formatTime(audio.currentTime);
+            });
+
+            audio.addEventListener('ended', () => {
+                btn.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                `;
+                progressBar.style.width = '0%';
+                currentAudio = null;
+            });
+
+            audio.play();
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function clearChat() {
+            if (confirm('Clear conversation history?')) {
+                fetch(`/api/clear/${sessionId}`, { method: 'POST' });
+                sessionId = generateId();
+                localStorage.setItem('sessionId', sessionId);
+                messages = [];
+                document.getElementById('chatArea').innerHTML = `
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-state-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                <line x1="12" y1="19" x2="12" y2="22"/>
+                            </svg>
+                        </div>
+                        <div class="empty-state-title">Start a conversation</div>
+                        <p>Type a message and the AI will respond with voice.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function exportChat() {
+            const data = {
+                sessionId,
+                messages,
+                exportedAt: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `conversation-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        async function loadHistory() {
+            try {
+                const response = await fetch(`/api/history/${sessionId}`);
+                const data = await response.json();
+                
+                if (data.history && data.history.length > 0) {
+                    document.getElementById('emptyState').style.display = 'none';
+                    
+                    const historyList = document.getElementById('historyList');
+                    historyList.innerHTML = data.history.slice(-5).reverse().map(item => `
+                        <div class="history-item">
+                            <div class="history-item-text">${escapeHtml(item.user)}</div>
+                            <div class="history-item-time">${new Date(item.timestamp).toLocaleTimeString()}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.log('Could not load history');
+            }
+        }
+
+        // ===== System Instructions =====
+        const systemPresets = {
+            default: "You are a helpful AI assistant. Respond naturally and conversationally, keeping responses concise and clear for audio playback. Do not use markdown formatting, bullet points, or special characters that don't translate well to speech.",
+            concise: "You are a helpful AI assistant. Be extremely concise - answer in 1-3 sentences maximum. Get straight to the point without unnecessary elaboration. No greetings or filler words.",
+            detailed: "You are a helpful AI assistant. Provide comprehensive, detailed explanations. Include relevant context, examples, and nuances. Structure your response logically for easy listening.",
+            creative: "You are a creative and imaginative AI assistant. Feel free to be playful, use metaphors, tell stories, and explore ideas in interesting ways. Be engaging and entertaining while remaining helpful.",
+            professional: "You are a professional AI assistant. Maintain a formal, business-appropriate tone. Be precise, factual, and objective. Avoid casual language, jokes, or overly friendly expressions."
+        };
+
+        function loadSystemInstructions() {
+            const saved = localStorage.getItem('systemInstructions');
+            const textarea = document.getElementById('systemInstructions');
+            
+            if (saved) {
+                textarea.value = saved;
+            } else {
+                textarea.value = systemPresets.default;
+            }
+            updateCharCount();
+            loadQuickOptions();
+        }
+
+        function openSystemInstructions() {
+            loadSystemInstructions();
+            document.getElementById('systemInstructionsPanel').classList.add('open');
+            document.getElementById('systemPanelOverlay').classList.add('visible');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSystemInstructions() {
+            document.getElementById('systemInstructionsPanel').classList.remove('open');
+            document.getElementById('systemPanelOverlay').classList.remove('visible');
+            document.body.style.overflow = '';
+        }
+
+        function loadPreset(preset) {
+            const textarea = document.getElementById('systemInstructions');
+            textarea.value = systemPresets[preset] || systemPresets.default;
+            updateCharCount();
+            
+            // Update active preset button
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function updateCharCount() {
+            const textarea = document.getElementById('systemInstructions');
+            const count = textarea.value.length;
+            document.getElementById('charCount').textContent = count;
+            
+            if (count > 2000) {
+                document.getElementById('charCount').style.color = 'var(--error)';
+            } else {
+                document.getElementById('charCount').style.color = 'var(--text-muted)';
+            }
+        }
+
+        function loadQuickOptions() {
+            const savedOptions = JSON.parse(localStorage.getItem('quickOptions') || '{}');
+            document.getElementById('optConcise').checked = savedOptions.concise ?? true;
+            document.getElementById('optNoEmoji').checked = savedOptions.noEmoji ?? true;
+            document.getElementById('optFriendly').checked = savedOptions.friendly ?? false;
+            document.getElementById('optExpert').checked = savedOptions.expert ?? false;
+        }
+
+        function getQuickOptionsText() {
+            const options = [];
+            if (document.getElementById('optConcise').checked) {
+                options.push("Keep responses short and concise.");
+            }
+            if (document.getElementById('optNoEmoji').checked) {
+                options.push("Do not use emojis or special formatting.");
+            }
+            if (document.getElementById('optFriendly').checked) {
+                options.push("Use a friendly and casual tone.");
+            }
+            if (document.getElementById('optExpert').checked) {
+                options.push("Provide expert-level, in-depth responses.");
+            }
+            return options.join(' ');
+        }
+
+        function saveSystemInstructions() {
+            const textarea = document.getElementById('systemInstructions');
+            const instructions = textarea.value.trim();
+            
+            if (instructions.length > 2000) {
+                showToast('Instructions too long! Maximum 2000 characters.', 'error');
+                return;
+            }
+            
+            localStorage.setItem('systemInstructions', instructions);
+            
+            // Save quick options
+            const quickOptions = {
+                concise: document.getElementById('optConcise').checked,
+                noEmoji: document.getElementById('optNoEmoji').checked,
+                friendly: document.getElementById('optFriendly').checked,
+                expert: document.getElementById('optExpert').checked
+            };
+            localStorage.setItem('quickOptions', JSON.stringify(quickOptions));
+            
+            closeSystemInstructions();
+            showToast('System instructions saved!', 'success');
+        }
+
+        function resetInstructions() {
+            document.getElementById('systemInstructions').value = systemPresets.default;
+            document.getElementById('optConcise').checked = true;
+            document.getElementById('optNoEmoji').checked = true;
+            document.getElementById('optFriendly').checked = false;
+            document.getElementById('optExpert').checked = false;
+            updateCharCount();
+            
+            // Clear active preset buttons
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        }
+
+        function getSystemInstructions() {
+            const base = localStorage.getItem('systemInstructions') || systemPresets.default;
+            const quickOpts = getQuickOptionsText();
+            return quickOpts ? `${base}\n\n${quickOpts}` : base;
+        }
+
+        function showToast(message, type = 'success') {
+            // Remove existing toast
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="${type === 'success' ? 'var(--success)' : 'var(--error)'}" stroke-width="2">
+                    ${type === 'success' 
+                        ? '<path d="M20 6L9 17l-5-5"/>'
+                        : '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>'
+                    }
+                </svg>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('visible'), 10);
+            setTimeout(() => {
+                toast.classList.remove('visible');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Add event listener for textarea character count
+        document.getElementById('systemInstructions')?.addEventListener('input', updateCharCount);
+
+        // Add keyboard shortcut for System Instructions (Ctrl+I)
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'i') {
+                e.preventDefault();
+                openSystemInstructions();
+            }
+        });
+    </script>
+</body>
+</html>
