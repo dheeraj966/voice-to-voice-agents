@@ -49,7 +49,7 @@ export const WelcomeView = ({
 
       <div className="fixed bottom-5 left-0 flex w-full items-center justify-center">
         <p className="text-muted-foreground max-w-prose pt-1 text-xs leading-5 font-normal text-pretty md:text-sm">
-          <Link href="/setup" className="underline mr-2">
+          <Link href="/setup" className="mr-2 underline">
             ⚙️ Backend Setup
           </Link>
           |
@@ -57,7 +57,7 @@ export const WelcomeView = ({
             target="_blank"
             rel="noopener noreferrer"
             href="https://docs.livekit.io/agents/start/voice-ai/"
-            className="underline ml-2"
+            className="ml-2 underline"
           >
             Voice AI quickstart
           </a>

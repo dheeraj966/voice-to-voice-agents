@@ -53,7 +53,7 @@ export function BackendConfigPanel({ className }: BackendConfigPanelProps) {
   }[status];
 
   return (
-    <div className={`rounded-lg border border-border bg-card p-4 ${className}`}>
+    <div className={`border-border bg-card rounded-lg border p-4 ${className}`}>
       {/* Status Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
@@ -68,10 +68,10 @@ export function BackendConfigPanel({ className }: BackendConfigPanelProps) {
       </button>
 
       {/* Status Message */}
-      <p className="mt-2 text-sm text-muted-foreground">{message}</p>
-      
+      <p className="text-muted-foreground mt-2 text-sm">{message}</p>
+
       {connected && (
-        <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
+        <div className="text-muted-foreground mt-2 flex gap-4 text-xs">
           <span>Model: {model || 'Unknown'}</span>
           <span>Ollama: {ollamaAvailable ? '✅' : '❌'}</span>
         </div>
@@ -79,7 +79,7 @@ export function BackendConfigPanel({ className }: BackendConfigPanelProps) {
 
       {/* Expanded Config */}
       {isExpanded && (
-        <div className="mt-4 space-y-4 border-t border-border pt-4">
+        <div className="border-border mt-4 space-y-4 border-t pt-4">
           {/* Backend URL */}
           <div>
             <label className="mb-1 block text-sm font-medium">
@@ -91,16 +91,16 @@ export function BackendConfigPanel({ className }: BackendConfigPanelProps) {
                 value={newBackendUrl}
                 onChange={(e) => setNewBackendUrl(e.target.value)}
                 placeholder="http://your-server-ip:5000"
-                className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="border-input bg-background flex-1 rounded-md border px-3 py-2 text-sm"
               />
               <button
                 onClick={handleSaveBackend}
-                className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm"
               >
                 Save
               </button>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               Examples: http://192.168.1.100:5000, https://your-server.railway.app
             </p>
           </div>
@@ -116,11 +116,11 @@ export function BackendConfigPanel({ className }: BackendConfigPanelProps) {
                 value={newLivekitUrl}
                 onChange={(e) => setNewLivekitUrl(e.target.value)}
                 placeholder="wss://your-project.livekit.cloud"
-                className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="border-input bg-background flex-1 rounded-md border px-3 py-2 text-sm"
               />
               <button
                 onClick={handleSaveLivekit}
-                className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm"
               >
                 Save
               </button>
@@ -131,23 +131,26 @@ export function BackendConfigPanel({ className }: BackendConfigPanelProps) {
           <div className="flex gap-2">
             <button
               onClick={checkConnection}
-              className="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent"
+              className="border-input hover:bg-accent rounded-md border px-4 py-2 text-sm"
             >
               🔄 Test Connection
             </button>
             <button
               onClick={resetBackendConfig}
-              className="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent"
+              className="border-input hover:bg-accent rounded-md border px-4 py-2 text-sm"
             >
               🔄 Reset to Defaults
             </button>
           </div>
 
           {/* Help Text */}
-          <div className="rounded-md bg-muted p-3 text-xs">
+          <div className="bg-muted rounded-md p-3 text-xs">
             <p className="font-medium">How to connect:</p>
             <ol className="mt-2 list-inside list-decimal space-y-1">
-              <li>Run the backend on your server: <code className="rounded bg-background px-1">python src/web_agent.py</code></li>
+              <li>
+                Run the backend on your server:{' '}
+                <code className="bg-background rounded px-1">python src/web_agent.py</code>
+              </li>
               <li>Find your server's IP address</li>
               <li>Enter the URL above (e.g., http://192.168.1.100:5000)</li>
               <li>Click Save - the page will reload</li>

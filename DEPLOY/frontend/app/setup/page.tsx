@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useBackendConnection, useBackendAPI } from '@/hooks/useBackend';
 import { BackendConfigPanel } from '@/components/app/backend-config-panel';
+import { useBackendAPI, useBackendConnection } from '@/hooks/useBackend';
 
 export default function SetupPage() {
   const { status, connected, backendUrl, ollamaAvailable, model } = useBackendConnection();
@@ -26,31 +26,33 @@ export default function SetupPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background p-8">
+    <main className="bg-background min-h-screen p-8">
       <div className="mx-auto max-w-2xl space-y-8">
         {/* Header */}
         <div className="text-center">
           <h1 className="text-4xl font-bold">🎤 Voice AI Setup</h1>
-          <p className="mt-2 text-muted-foreground">
-            Connect this frontend to your backend server
-          </p>
+          <p className="text-muted-foreground mt-2">Connect this frontend to your backend server</p>
         </div>
 
         {/* Backend Config Panel */}
         <BackendConfigPanel />
 
         {/* Connection Status Details */}
-        <div className="rounded-lg border border-border bg-card p-6">
+        <div className="border-border bg-card rounded-lg border p-6">
           <h2 className="text-xl font-semibold">Connection Status</h2>
           <div className="mt-4 space-y-2">
             <div className="flex justify-between">
               <span>Backend URL:</span>
-              <code className="rounded bg-muted px-2 py-1 text-sm">{backendUrl}</code>
+              <code className="bg-muted rounded px-2 py-1 text-sm">{backendUrl}</code>
             </div>
             <div className="flex justify-between">
               <span>Status:</span>
               <span className={connected ? 'text-green-500' : 'text-red-500'}>
-                {status === 'checking' ? '⏳ Checking...' : connected ? '✅ Connected' : '❌ Disconnected'}
+                {status === 'checking'
+                  ? '⏳ Checking...'
+                  : connected
+                    ? '✅ Connected'
+                    : '❌ Disconnected'}
               </span>
             </div>
             {connected && (
@@ -72,28 +74,24 @@ export default function SetupPage() {
 
         {/* Test Chat */}
         {connected && (
-          <div className="rounded-lg border border-border bg-card p-6">
+          <div className="border-border bg-card rounded-lg border p-6">
             <h2 className="text-xl font-semibold">Test Connection</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="text-muted-foreground mt-2 text-sm">
               Send a test message to verify the AI is responding
             </p>
             <button
               onClick={runTest}
               disabled={testing || !ollamaAvailable}
-              className="mt-4 rounded-md bg-primary px-6 py-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 mt-4 rounded-md px-6 py-2 disabled:opacity-50"
             >
               {testing ? '⏳ Testing...' : '🧪 Test AI Response'}
             </button>
-            {testResult && (
-              <div className="mt-4 rounded-md bg-muted p-3 text-sm">
-                {testResult}
-              </div>
-            )}
+            {testResult && <div className="bg-muted mt-4 rounded-md p-3 text-sm">{testResult}</div>}
           </div>
         )}
 
         {/* Next Steps */}
-        <div className="rounded-lg border border-border bg-card p-6">
+        <div className="border-border bg-card rounded-lg border p-6">
           <h2 className="text-xl font-semibold">Next Steps</h2>
           <div className="mt-4 space-y-4">
             {!connected ? (
@@ -104,20 +102,22 @@ export default function SetupPage() {
                 </p>
                 <ol className="mt-3 list-inside list-decimal text-sm">
                   <li>Open a terminal on your server/PC</li>
-                  <li>Navigate to <code>agent-starter-python</code> folder</li>
-                  <li>Run: <code>python src/web_agent.py</code></li>
+                  <li>
+                    Navigate to <code>agent-starter-python</code> folder
+                  </li>
+                  <li>
+                    Run: <code>python src/web_agent.py</code>
+                  </li>
                   <li>Enter the server IP above</li>
                 </ol>
               </div>
             ) : (
               <div className="rounded-md bg-green-500/10 p-4 text-green-600">
                 <p className="font-medium">✅ Backend connected!</p>
-                <p className="mt-1 text-sm">
-                  You can now use the Voice AI. Go to the main app:
-                </p>
+                <p className="mt-1 text-sm">You can now use the Voice AI. Go to the main app:</p>
                 <Link
                   href="/"
-                  className="mt-3 inline-block rounded-md bg-primary px-6 py-2 text-primary-foreground hover:bg-primary/90"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 mt-3 inline-block rounded-md px-6 py-2"
                 >
                   🎤 Open Voice AI
                 </Link>
@@ -127,19 +127,19 @@ export default function SetupPage() {
         </div>
 
         {/* Instructions */}
-        <div className="rounded-lg border border-border bg-card p-6 text-sm">
+        <div className="border-border bg-card rounded-lg border p-6 text-sm">
           <h2 className="text-lg font-semibold">How This Works</h2>
-          <div className="mt-4 space-y-3 text-muted-foreground">
+          <div className="text-muted-foreground mt-4 space-y-3">
             <p>
-              <strong>Frontend (this website):</strong> Hosted on Netlify. Handles the UI and sends 
+              <strong>Frontend (this website):</strong> Hosted on Netlify. Handles the UI and sends
               requests to your backend.
             </p>
             <p>
-              <strong>Backend (Python server):</strong> Runs on your computer or a cloud server. 
+              <strong>Backend (Python server):</strong> Runs on your computer or a cloud server.
               Handles AI processing with Ollama.
             </p>
             <p>
-              <strong>Connection:</strong> The frontend makes API calls to whatever backend URL you 
+              <strong>Connection:</strong> The frontend makes API calls to whatever backend URL you
               configure. Your backend must have CORS enabled (it already does).
             </p>
           </div>

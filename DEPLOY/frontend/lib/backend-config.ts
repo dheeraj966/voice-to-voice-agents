@@ -16,12 +16,12 @@ function getBackendUrl(): string {
   // 1. Runtime config (set by user in browser localStorage)
   // 2. Environment variable (set at build time)
   // 3. Default localhost for development
-  
+
   if (typeof window !== 'undefined') {
     const storedUrl = localStorage.getItem('VOICE_AI_BACKEND_URL');
     if (storedUrl) return storedUrl;
   }
-  
+
   return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 }
 
@@ -30,7 +30,7 @@ function getLivekitUrl(): string {
     const storedUrl = localStorage.getItem('VOICE_AI_LIVEKIT_URL');
     if (storedUrl) return storedUrl;
   }
-  
+
   return process.env.NEXT_PUBLIC_LIVEKIT_URL || process.env.LIVEKIT_URL || 'ws://localhost:7880';
 }
 

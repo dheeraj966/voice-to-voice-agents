@@ -1,7 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { backendConfig, setBackendUrl, setLivekitUrl, resetBackendConfig, API } from '@/lib/backend-config';
+import { useEffect, useState } from 'react';
+import {
+  API,
+  backendConfig,
+  resetBackendConfig,
+  setBackendUrl,
+  setLivekitUrl,
+} from '@/lib/backend-config';
 
 interface BackendStatus {
   connected: boolean;
@@ -18,8 +24,8 @@ export function useBackendConnection() {
   });
 
   const checkConnection = async () => {
-    setStatus(prev => ({ ...prev, status: 'checking' }));
-    
+    setStatus((prev) => ({ ...prev, status: 'checking' }));
+
     try {
       const response = await fetch(API.health(), {
         method: 'GET',
@@ -27,7 +33,7 @@ export function useBackendConnection() {
         // Important: allow CORS
         mode: 'cors',
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setStatus({
@@ -94,12 +100,12 @@ export function useBackendAPI() {
         generate_audio: options?.generateAudio ?? true,
       }),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to send message');
     }
-    
+
     return response.json();
   };
 
@@ -110,11 +116,11 @@ export function useBackendAPI() {
       mode: 'cors',
       body: JSON.stringify({ text, voice, speed }),
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to convert text to speech');
     }
-    
+
     return response.json();
   };
 

@@ -3,20 +3,24 @@
 ## ⚡ QUICK START (Copy-Paste Commands)
 
 ### Local Development
+
 ```bash
 cd frontend
 npm install        # or: pnpm install
 npm run dev        # or: pnpm dev
 ```
+
 **Local URL:** `http://localhost:3000`
 
 ### Build for Production
+
 ```bash
 cd frontend
 npm install && npm run build
 ```
 
 ### Deploy to Netlify (CLI)
+
 ```bash
 npm install -g netlify-cli
 cd frontend
@@ -24,6 +28,7 @@ netlify deploy --prod
 ```
 
 ### Deploy to Netlify (Manual)
+
 1. Go to https://app.netlify.com
 2. Drag & drop the `frontend` folder
 3. Done!
@@ -31,6 +36,7 @@ netlify deploy --prod
 ---
 
 ## 📁 Location
+
 ```
 C:\Users\maxwe\ml project\fast_test_env\live_kit\DEPLOY\frontend
 ```
@@ -38,6 +44,7 @@ C:\Users\maxwe\ml project\fast_test_env\live_kit\DEPLOY\frontend
 ## 🚀 Deploy to Netlify
 
 ### Option 1: Drag & Drop (Easiest)
+
 1. Go to https://app.netlify.com
 2. Login or create account
 3. Click "Add new site" → "Deploy manually"
@@ -46,6 +53,7 @@ C:\Users\maxwe\ml project\fast_test_env\live_kit\DEPLOY\frontend
 6. Your site is live!
 
 ### Option 2: Git Deploy (Recommended)
+
 1. Push this folder to GitHub
 2. Go to Netlify → "Add new site" → "Import an existing project"
 3. Connect your GitHub repo
@@ -55,14 +63,14 @@ C:\Users\maxwe\ml project\fast_test_env\live_kit\DEPLOY\frontend
 
 Go to: Site settings → Environment variables → Add variable
 
-| Variable | Value | Required |
-|----------|-------|----------|
-| `LIVEKIT_API_KEY` | Your LiveKit Cloud API key | For voice |
-| `LIVEKIT_API_SECRET` | Your LiveKit Cloud secret | For voice |
-| `LIVEKIT_URL` | `wss://your-project.livekit.cloud` | For voice |
-| `NEXT_PUBLIC_BACKEND_URL` | `http://YOUR_SERVER_IP:5000` | Optional* |
+| Variable                  | Value                              | Required   |
+| ------------------------- | ---------------------------------- | ---------- |
+| `LIVEKIT_API_KEY`         | Your LiveKit Cloud API key         | For voice  |
+| `LIVEKIT_API_SECRET`      | Your LiveKit Cloud secret          | For voice  |
+| `LIVEKIT_URL`             | `wss://your-project.livekit.cloud` | For voice  |
+| `NEXT_PUBLIC_BACKEND_URL` | `http://YOUR_SERVER_IP:5000`       | Optional\* |
 
-*Backend URL can also be set at runtime via `/setup` page
+\*Backend URL can also be set at runtime via `/setup` page
 
 ## 📱 After Deployment
 

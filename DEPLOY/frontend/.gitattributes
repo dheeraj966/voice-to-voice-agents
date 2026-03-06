@@ -1,0 +1,29 @@
+# .gitattributes
+# Normalize text files to LF on checkout
+* text=auto eol=lf
+
+# Force LF for common source file types
+*.js eol=lf
+*.ts eol=lf
+*.tsx eol=lf
+*.jsx eol=lf
+*.css eol=lf
+*.html eol=lf
+*.json eol=lf
+*.md eol=lf
+*.yaml eol=lf
+*.yml eol=lf
+*.toml eol=lf
+*.mjs eol=lf
+
+# Binary files (don't modify)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.otf binary
+*.ttf binary
+*.webp binary
