@@ -1,0 +1,6 @@
+[submodule "ml project/fast_test_env/live_kit"]
+	path = ml project/fast_test_env/live_kit
+	url = https://github.com/dheeraj966/text-to-audio-model.git
+[submodule "ml project/fast_test_env/tinyvc_module"]
+	path = ml project/fast_test_env/tinyvc_module
+	url = https://github.com/uthree/tinyvc.git
